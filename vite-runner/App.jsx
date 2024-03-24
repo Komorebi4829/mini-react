@@ -1,7 +1,13 @@
 import React from './core/React'
 
 // const App = React.createElement('div', { id: 'app' }, 'zivi', 'react')
-const App = <div>mini react</div>
+const App = (
+    <div>
+        <div>mini react</div>
+        <p>mini</p>
+        <span>react</span>
+    </div>
+)
 // const App = () => {
 //     return <div id='miao'>mini react</div>
 // }
