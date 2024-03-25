@@ -47,8 +47,11 @@ function render(el, container) {
             children: [el],
         },
     }
+
+    root = nextWorkOfUnit
 }
 
+let root = null
 let nextWorkOfUnit = null
 function workLoop(deadline) {
     let shouldYield = false
@@ -57,7 +60,23 @@ function workLoop(deadline) {
         nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit)
         shouldYield = deadline.timeRemaining() < 1
     }
+
+    if (!nextWorkOfUnit && root) {
+        commitRoot()
+    }
     requestIdleCallback(workLoop)
+}
+
+function commitRoot(fiber) {
+    commitWork(root.child)
+    root = null
+}
+
+function commitWork(fiber) {
+    if (!fiber) return
+    fiber.parent.dom.append(fiber.dom)
+    commitWork(fiber.child)
+    commitWork(fiber.sibling)
 }
 
 requestIdleCallback(workLoop)
@@ -100,7 +119,7 @@ function performWorkOfUnit(fiber) {
         const dom = createDom(fiber.type)
         fiber.dom = dom
 
-        fiber.parent.dom.append(dom)
+        // fiber.parent.dom.append(dom)
         updateProps(dom, fiber.props)
     }
 
