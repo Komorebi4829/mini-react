@@ -2,8 +2,8 @@ import React from './core/React'
 
 // const App = React.createElement('div', { id: 'app' }, 'zivi', 'react')
 
-function Demo() {
-    return <div>Demo</div>
+function Demo({ num }) {
+    return <div>Demo: {num}</div>
 }
 
 function DemoWrapper() {
@@ -16,8 +16,9 @@ function App() {
             <div>mini react</div>
             <p>mini</p>
             <span>react</span>
-            {/* <Demo></Demo> */}
-            <DemoWrapper></DemoWrapper>
+            <Demo num={12}></Demo>
+            <Demo num={22}></Demo>
+            {/* <DemoWrapper></DemoWrapper> */}
         </div>
     )
 }
