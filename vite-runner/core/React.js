@@ -62,48 +62,59 @@ function workLoop(deadline) {
 
 requestIdleCallback(workLoop)
 
-function performWorkOfUnit(work) {
-    if (!work.dom) {
-        const dom = work.type === ELEMENT_TYPE.TEXT ? document.createTextNode('') : document.createElement(work.type)
-        work.dom = dom
+function createDom(type) {
+    return type === ELEMENT_TYPE.TEXT ? document.createTextNode('') : document.createElement(work.type)
+}
 
-        work.parent.dom.append(dom)
+function updateProps(dom, props) {
+    Object.entries(props).forEach(([k, v]) => {
+        if (k !== 'children') {
+            dom[k] = v
+        }
+    })
+}
 
-        Object.entries(work.props).forEach(([k, v]) => {
-            if (k !== 'children') {
-                dom[k] = v
-            }
-        })
-    }
-
-    const children = work.props.children
+function initChildren(fiber) {
+    const children = fiber.props.children
     let prevChild = null
     children.map((child, index) => {
-        const newWork = {
+        const newFiber = {
             type: child.type,
             props: child.props,
             child: null,
             sibling: null,
-            parent: work,
+            parent: fiber,
             dom: null,
         }
         if (index === 0) {
-            work.child = newWork
+            fiber.child = newFiber
         } else {
-            prevChild.sibling = newWork
+            prevChild.sibling = newFiber
         }
-        prevChild = newWork
+        prevChild = newFiber
     })
+}
 
-    if (work.child) {
-        return work.child
+function performWorkOfUnit(fiber) {
+    if (!fiber.dom) {
+        const dom = createDom(fiber.type)
+        fiber.dom = dom
+
+        fiber.parent.dom.append(dom)
+        updateProps(dom, fiber.props)
     }
 
-    if (work.sibling) {
-        return work.sibling
+    initChildren(fiber)
+
+    if (fiber.child) {
+        return fiber.child
     }
 
-    return work.parent?.sibling
+    if (fiber.sibling) {
+        return fiber.sibling
+    }
+
+    return fiber.parent?.sibling
 }
 
 const React = {
