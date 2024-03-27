@@ -2,14 +2,15 @@ import React from './core/React'
 
 // const App = React.createElement('div', { id: 'app' }, 'zivi', 'react')
 
+let count = 10
 function Demo({ num }) {
     function handleClick() {
-        // num++
-        console.log('click')
+        count++
+        React.update()
     }
     return (
         <div>
-            Demo: {num} <button onClick={handleClick}>button</button>
+            Demo: {count} <button onClick={handleClick}>button</button>
         </div>
     )
 }

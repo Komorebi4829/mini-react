@@ -53,6 +53,7 @@ function render(el, container) {
 }
 
 let root = null
+let currentRoot = null
 let nextWorkOfUnit = null
 function workLoop(deadline) {
     let shouldYield = false
@@ -68,8 +69,9 @@ function workLoop(deadline) {
     requestIdleCallback(workLoop)
 }
 
-function commitRoot(fiber) {
+function commitRoot() {
     commitWork(root.child)
+    currentRoot = root
     root = null
 }
 
@@ -81,8 +83,12 @@ function commitWork(fiber) {
         fiberParent = fiberParent.parent
     }
 
-    if (fiber.dom) {
-        fiberParent.dom.append(fiber.dom)
+    if (fiber.effectTag === 'update') {
+        updateProps(fiber.dom, fiber.props, fiber.alternate?.props)
+    } else if (fiber.effectTag === 'placement') {
+        if (fiber.dom) {
+            fiberParent.dom.append(fiber.dom)
+        }
     }
 
     commitWork(fiber.child)
@@ -95,30 +101,75 @@ function createDom(type) {
     return type === ELEMENT_TYPE.TEXT ? document.createTextNode('') : document.createElement(work.type)
 }
 
-function updateProps(dom, props) {
-    Object.entries(props).forEach(([k, v]) => {
-        if (k !== 'children') {
-            if (k.startsWith('on')) {
-                const eventType = k.slice(2).toLowerCase()
-                dom.addEventListener(eventType, v)
-            } else {
-                dom[k] = v
+function updateProps(dom, nextProps, prevProps) {
+    // Object.entries(props).forEach(([k, v]) => {
+    //     if (k !== 'children') {
+    //         if (k.startsWith('on')) {
+    //             const eventType = k.slice(2).toLowerCase()
+    //             dom.addEventListener(eventType, v)
+    //         } else {
+    //             dom[k] = v
+    //         }
+    //     }
+    // })
+    Object.keys(prevProps).forEach((key) => {
+        if (key !== 'children') {
+            if (!(key in nextProps)) {
+                dom.removeAttribute(key)
+            }
+        }
+    })
+
+    Object.keys(nextProps).forEach((key) => {
+        if (key !== 'children') {
+            if (nextProps[key] !== prevProps[key]) {
+                if (key.startsWith('on')) {
+                    const eventType = key.slice(2).toLowerCase()
+                    dom.removeEventListener(eventType, prevProps[key])
+                    dom.addEventListener(eventType, nextProps[key])
+                } else {
+                    dom[key] = nextProps[key]
+                }
             }
         }
     })
 }
 
 function initChildren(fiber, children) {
+    let oldFiber = fiber.alternate?.child
     let prevChild = null
     children.map((child, index) => {
-        const newFiber = {
-            type: child.type,
-            props: child.props,
-            child: null,
-            sibling: null,
-            parent: fiber,
-            dom: null,
+        const isSameType = oldFiber && oldFiber.type === child.type
+
+        let newFiber
+        if (isSameType) {
+            // update
+            newFiber = {
+                type: child.type,
+                props: child.props,
+                child: null,
+                sibling: null,
+                parent: fiber,
+                dom: oldFiber.dom,
+                effectTag: 'update',
+                alternate: oldFiber,
+            }
+        } else {
+            newFiber = {
+                type: child.type,
+                props: child.props,
+                child: null,
+                sibling: null,
+                parent: fiber,
+                dom: null,
+                effectTag: 'placement',
+            }
         }
+
+        if (oldFiber) {
+            oldFiber = oldFiber.sibling
+        }
+
         if (index === 0) {
             fiber.child = newFiber
         } else {
@@ -138,7 +189,7 @@ function updateHostComponent(fiber) {
         fiber.dom = dom
 
         // fiber.parent.dom.append(dom)
-        updateProps(dom, fiber.props)
+        updateProps(dom, fiber.props, {})
     }
     const children = fiber.props.children
     initChildren(fiber, children)
@@ -166,8 +217,19 @@ function performWorkOfUnit(fiber) {
     return fiber.parent?.sibling
 }
 
+function update() {
+    nextWorkOfUnit = {
+        dom: currentRoot.dom,
+        props: currentRoot.props,
+        alternate: currentRoot,
+    }
+
+    root = nextWorkOfUnit
+}
+
 const React = {
     render,
+    update,
     createElement,
 }
 
