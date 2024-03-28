@@ -42,17 +42,17 @@ const createElement = (type, props, ...children) => {
 }
 
 function render(el, container) {
-    nextWorkOfUnit = {
+    workInProgressRoot = {
         dom: container,
         props: {
             children: [el],
         },
     }
 
-    root = nextWorkOfUnit
+    nextWorkOfUnit = workInProgressRoot
 }
 
-let root = null
+let workInProgressRoot = null
 let currentRoot = null
 let nextWorkOfUnit = null
 function workLoop(deadline) {
@@ -63,16 +63,16 @@ function workLoop(deadline) {
         shouldYield = deadline.timeRemaining() < 1
     }
 
-    if (!nextWorkOfUnit && root) {
+    if (!nextWorkOfUnit && workInProgressRoot) {
         commitRoot()
     }
     requestIdleCallback(workLoop)
 }
 
 function commitRoot() {
-    commitWork(root.child)
-    currentRoot = root
-    root = null
+    commitWork(workInProgressRoot.child)
+    currentRoot = workInProgressRoot
+    workInProgressRoot = null
 }
 
 function commitWork(fiber) {
@@ -135,7 +135,7 @@ function updateProps(dom, nextProps, prevProps) {
     })
 }
 
-function initChildren(fiber, children) {
+function reconcileChildren(fiber, children) {
     let oldFiber = fiber.alternate?.child
     let prevChild = null
     children.map((child, index) => {
@@ -181,7 +181,7 @@ function initChildren(fiber, children) {
 
 function updateFunctionComponent(fiber) {
     const children = [fiber.type(fiber.props)]
-    initChildren(fiber, children)
+    reconcileChildren(fiber, children)
 }
 function updateHostComponent(fiber) {
     if (!fiber.dom) {
@@ -192,7 +192,7 @@ function updateHostComponent(fiber) {
         updateProps(dom, fiber.props, {})
     }
     const children = fiber.props.children
-    initChildren(fiber, children)
+    reconcileChildren(fiber, children)
 }
 
 function performWorkOfUnit(fiber) {
@@ -218,13 +218,13 @@ function performWorkOfUnit(fiber) {
 }
 
 function update() {
-    nextWorkOfUnit = {
+    workInProgressRoot = {
         dom: currentRoot.dom,
         props: currentRoot.props,
         alternate: currentRoot,
     }
 
-    root = nextWorkOfUnit
+    nextWorkOfUnit = workInProgressRoot
 }
 
 const React = {
