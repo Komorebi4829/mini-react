@@ -55,6 +55,7 @@ function render(el, container) {
 let workInProgressRoot = null
 let currentRoot = null
 let nextWorkOfUnit = null
+let deletions = []
 function workLoop(deadline) {
     let shouldYield = false
 
@@ -70,9 +71,23 @@ function workLoop(deadline) {
 }
 
 function commitRoot() {
+    deletions.forEach(commitDelete)
     commitWork(workInProgressRoot.child)
     currentRoot = workInProgressRoot
     workInProgressRoot = null
+    deletions = []
+}
+
+function commitDelete(fiber) {
+    if (fiber.dom) {
+        let fiberParent = fiber.parent
+        while (!fiberParent.dom) {
+            fiberParent = fiberParent.parent
+        }
+        fiberParent.dom.removeChild(fiber.dom)
+    } else {
+        commitDelete(fiber.child)
+    }
 }
 
 function commitWork(fiber) {
@@ -164,6 +179,11 @@ function reconcileChildren(fiber, children) {
                 dom: null,
                 effectTag: 'placement',
             }
+
+            if (oldFiber) {
+                console.log('should delete')
+                deletions.push(oldFiber)
+            }
         }
 
         if (oldFiber) {
@@ -177,6 +197,12 @@ function reconcileChildren(fiber, children) {
         }
         prevChild = newFiber
     })
+
+    while (oldFiber) {
+        deletions.push(oldFiber)
+
+        oldFiber = oldFiber.sibling
+    }
 }
 
 function updateFunctionComponent(fiber) {
