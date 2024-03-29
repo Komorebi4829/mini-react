@@ -10,7 +10,7 @@ function Demo({ num }) {
         React.update()
     }
     // const foo = <div>foo</div>
-    function foo() {
+    function Foo() {
         return <div>foo</div>
     }
     const bar = <p>bar</p>
@@ -20,15 +20,11 @@ function Demo({ num }) {
     }
     return (
         <div>
-            Demo: {count} <button onClick={handleClick}>button</button>
-            <div>{showBar ? bar : foo}</div>
+            {/* <div>{showBar ? bar : foo}</div> */}
+            <div>{showBar ? bar : <Foo></Foo>}</div>
             <button onClick={handleShowBar}>showBar</button>
         </div>
     )
-}
-
-function DemoWrapper() {
-    return <Demo></Demo>
 }
 
 function App() {
