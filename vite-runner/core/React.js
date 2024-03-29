@@ -56,11 +56,18 @@ let workInProgressRoot = null
 let currentRoot = null
 let nextWorkOfUnit = null
 let deletions = []
+let workInProgressFiber = null
 function workLoop(deadline) {
     let shouldYield = false
 
     while (!shouldYield && nextWorkOfUnit) {
         nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit)
+
+        if (workInProgressRoot?.sibling?.type === nextWorkOfUnit?.type) {
+            console.log('hit', workInProgressRoot, nextWorkOfUnit)
+            nextWorkOfUnit = undefined
+        }
+
         shouldYield = deadline.timeRemaining() < 1
     }
 
@@ -211,6 +218,8 @@ function reconcileChildren(fiber, children) {
 }
 
 function updateFunctionComponent(fiber) {
+    workInProgressFiber = fiber
+
     const children = [fiber.type(fiber.props)]
     reconcileChildren(fiber, children)
 }
@@ -249,13 +258,24 @@ function performWorkOfUnit(fiber) {
 }
 
 function update() {
-    workInProgressRoot = {
-        dom: currentRoot.dom,
-        props: currentRoot.props,
-        alternate: currentRoot,
-    }
+    let currentFiber = workInProgressFiber
 
-    nextWorkOfUnit = workInProgressRoot
+    return () => {
+        console.log('currentFiber', currentFiber)
+
+        workInProgressRoot = {
+            ...currentFiber,
+            alternate: currentFiber,
+        }
+
+        // workInProgressRoot = {
+        //     dom: currentRoot.dom,
+        //     props: currentRoot.props,
+        //     alternate: currentRoot,
+        // }
+
+        nextWorkOfUnit = workInProgressRoot
+    }
 }
 
 const React = {

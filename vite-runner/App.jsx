@@ -5,9 +5,11 @@ import React from './core/React'
 let count = 10
 let showBar = true
 function Demo({ num }) {
+    const update = React.update()
+
     function handleClick() {
         count++
-        React.update()
+        update()
     }
     // const foo = <div>foo</div>
     function Foo() {
@@ -16,7 +18,7 @@ function Demo({ num }) {
     const bar = <p>bar</p>
     function handleShowBar() {
         showBar = !showBar
-        React.update()
+        update()
     }
     return (
         <div>
