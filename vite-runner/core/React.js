@@ -218,6 +218,8 @@ function reconcileChildren(fiber, children) {
 }
 
 function updateFunctionComponent(fiber) {
+    stateHooks = []
+    stateHookIndex = 0
     workInProgressFiber = fiber
 
     const children = [fiber.type(fiber.props)]
@@ -278,14 +280,19 @@ function update() {
     }
 }
 
+let stateHooks
+let stateHookIndex
 function useState(initial) {
     let currentFiber = workInProgressFiber
-    const oldHook = currentFiber.alternate?.stateHook
+    const oldHook = currentFiber.alternate?.stateHooks[stateHookIndex]
     const stateHook = {
         state: oldHook ? oldHook.state : initial,
     }
 
-    currentFiber.stateHook = stateHook
+    stateHookIndex++
+    stateHooks.push(stateHook)
+
+    currentFiber.stateHooks = stateHooks
 
     function setState(action) {
         stateHook.state = action(stateHook.state)
