@@ -278,9 +278,31 @@ function update() {
     }
 }
 
+function useState(initial) {
+    let currentFiber = workInProgressFiber
+    const oldHook = currentFiber.alternate?.stateHook
+    const stateHook = {
+        state: oldHook ? oldHook.state : initial,
+    }
+
+    currentFiber.stateHook = stateHook
+
+    function setState(action) {
+        stateHook.state = action(stateHook.state)
+        workInProgressRoot = {
+            ...currentFiber,
+            alternate: currentFiber,
+        }
+
+        nextWorkOfUnit = workInProgressRoot
+    }
+    return [stateHook.state, setState]
+}
+
 const React = {
     render,
     update,
+    useState,
     createElement,
 }
 
