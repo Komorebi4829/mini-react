@@ -9,13 +9,13 @@ function Foo() {
         setbar('bbarbb')
     }
 
-    // React.useEffect(() => {
-    //     console.log('init')
-    //     return () => {}
-    // }, [])
+    React.useEffect(() => {
+        console.log('init')
+        return () => {}
+    }, [])
 
     React.useEffect(() => {
-        console.log('update')
+        console.log('update', count)
         return () => {}
     }, [count])
 
