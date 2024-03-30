@@ -11,12 +11,23 @@ function Foo() {
 
     React.useEffect(() => {
         console.log('init')
-        return () => {}
+        return () => {
+            console.log('cleanup 1')
+        }
     }, [])
 
     React.useEffect(() => {
         console.log('update', count)
-        return () => {}
+        return () => {
+            console.log('cleanup 2')
+        }
+    }, [count])
+
+    React.useEffect(() => {
+        console.log('update', count)
+        return () => {
+            console.log('cleanup 3')
+        }
     }, [count])
 
     return (
