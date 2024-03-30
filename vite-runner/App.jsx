@@ -8,6 +8,17 @@ function Foo() {
         // setbar((s) => s + ',bar')
         setbar('bbarbb')
     }
+
+    // React.useEffect(() => {
+    //     console.log('init')
+    //     return () => {}
+    // }, [])
+
+    React.useEffect(() => {
+        console.log('update')
+        return () => {}
+    }, [count])
+
     return (
         <div>
             <h1>Foo</h1>

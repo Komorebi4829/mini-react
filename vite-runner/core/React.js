@@ -80,9 +80,34 @@ function workLoop(deadline) {
 function commitRoot() {
     deletions.forEach(commitDelete)
     commitWork(workInProgressRoot.child)
+    commitEffectHook()
     currentRoot = workInProgressRoot
     workInProgressRoot = null
     deletions = []
+}
+
+function commitEffectHook() {
+    function run(fiber) {
+        if (!fiber) return
+
+        if (!fiber.alternate) {
+            // init
+            fiber.effectHook?.callback()
+        } else {
+            // update
+            // deps 没有发生改变
+            const oldEffectHook = fiber.alternate?.effectHook
+            const needUpdate = oldEffectHook?.deps?.some((oldDep, index) => {
+                return oldDep !== fiber.effectHook.deps[index]
+            })
+            needUpdate && fiber.effectHook?.callback()
+        }
+
+        run(fiber.child)
+        run(fiber.sibling)
+    }
+
+    run(workInProgressRoot)
 }
 
 function commitDelete(fiber) {
@@ -316,10 +341,19 @@ function useState(initial) {
     return [stateHook.state, setState]
 }
 
+function useEffect(callback, deps) {
+    const effectHook = {
+        callback,
+        deps,
+    }
+    workInProgressFiber.effectHook = effectHook
+}
+
 const React = {
     render,
     update,
     useState,
+    useEffect,
     createElement,
 }
 
