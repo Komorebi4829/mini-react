@@ -64,7 +64,7 @@ function workLoop(deadline) {
         nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit)
 
         if (workInProgressRoot?.sibling?.type === nextWorkOfUnit?.type) {
-            console.log('hit', workInProgressRoot, nextWorkOfUnit)
+            // console.log('hit', workInProgressRoot, nextWorkOfUnit)
             nextWorkOfUnit = undefined
         }
 
@@ -74,6 +74,11 @@ function workLoop(deadline) {
     if (!nextWorkOfUnit && workInProgressRoot) {
         commitRoot()
     }
+
+    if (nextWorkOfUnit && !workInProgressRoot) {
+        workInProgressRoot = currentRoot
+    }
+
     requestIdleCallback(workLoop)
 }
 
@@ -150,7 +155,7 @@ function commitWork(fiber) {
         fiberParent = fiberParent.parent
     }
 
-    if (fiber.effectTag === 'update') {
+    if (fiber.effectTag === 'update' && fiber.dom) {
         updateProps(fiber.dom, fiber.props, fiber.alternate?.props)
     } else if (fiber.effectTag === 'placement') {
         if (fiber.dom) {
@@ -165,7 +170,7 @@ function commitWork(fiber) {
 requestIdleCallback(workLoop)
 
 function createDom(type) {
-    return type === ELEMENT_TYPE.TEXT ? document.createTextNode('') : document.createElement(work.type)
+    return type === ELEMENT_TYPE.TEXT ? document.createTextNode('') : document.createElement(type)
 }
 
 function updateProps(dom, nextProps, prevProps) {
