@@ -1,4 +1,5 @@
 import React from './core/React'
+import Todo from './Todo'
 
 function Foo() {
     const [count, setcount] = React.useState(10)
@@ -41,16 +42,17 @@ function Foo() {
     )
 }
 
-function App() {
-    return (
-        <div>
-            <div>mini react</div>
-            <Foo></Foo>
-        </div>
-    )
-}
-// const App = () => {
-//     return <div id='miao'>mini react</div>
+// function App() {
+//     return (
+//         <div>
+//             <div>mini react</div>
+//             <Foo></Foo>
+//         </div>
+//     )
 // }
+function App() {
+    return <Todo></Todo>
+}
+
 
 export default App
